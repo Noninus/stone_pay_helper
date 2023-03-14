@@ -3,6 +3,7 @@ import 'package:flutter/scheduler.dart';
 import 'dart:async';
 
 import 'package:flutter/services.dart';
+import 'package:stone_pay_helper/payment_service/payment_request.dart';
 import 'package:stone_pay_helper/payment_service/payment_response.dart';
 import 'package:stone_pay_helper/stone_pay_helper.dart';
 
@@ -22,7 +23,7 @@ class _PaymentTestScreenState extends State<PaymentTestScreen> {
     StonePayHelper.init();
     subscription = StonePayHelper.checkoutStreamListen
         .listen((PaymentResponse paymentResponse) {
-      print("===== CALLBACK ${paymentResponse.message} =======");
+      print("===== CALLBACK ${paymentResponse.success} =======");
       SchedulerBinding.instance.addPostFrameCallback((_) {
         setState(() {
           _platformVersion = paymentResponse.message;
@@ -33,24 +34,27 @@ class _PaymentTestScreenState extends State<PaymentTestScreen> {
 
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> checkout() async {
-    String platformVersion;
+    PaymentRequest paymentRequest = PaymentRequest(
+      amount: 100,
+      editableAmount: false,
+      installmentCount: null,
+      transactionType: "CREDIT",
+      installmentType: null,
+      orderId: null,
+      returnScheme: "flutterdeeplinkdemo",
+    );
+
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
-      platformVersion = await StonePayHelper.checkout();
+      await StonePayHelper.checkout(paymentRequest);
     } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
+      print('Failed to get platform version.');
     }
-
-    print('awaiting response');
 
     // If the widget was removed from the tree while the asynchronous platform
     // message was in flight, we want to discard the reply rather than calling
     // setState to update our non-existent appearance.
     if (!mounted) return;
-
-    setState(() {
-      _platformVersion = platformVersion;
-    });
   }
 
   @override

@@ -1,7 +1,6 @@
 import 'dart:async';
-import 'dart:convert';
-
 import 'package:flutter/services.dart';
+import 'package:stone_pay_helper/payment_service/payment_request.dart';
 import 'package:stone_pay_helper/payment_service/payment_response.dart';
 
 class PaymentService {
@@ -10,20 +9,34 @@ class PaymentService {
   static StreamController<PaymentResponse> _controller =
       StreamController.broadcast();
 
-  Stream get streamData => _controller.stream;
+  Stream<PaymentResponse> get streamData => _controller.stream;
 
   PaymentService(this._messagesChannel);
 
-  checkout() async {
+  checkout(PaymentRequest paymentRequest) async {
     try {
-      _messagesChannel.setMethodCallHandler((call) {
+      _messagesChannel.setMethodCallHandler((call) async {
         switch (call.method) {
           case "checkoutCallback":
             var uri = Uri.parse(call.arguments);
             PaymentResponse paymentResponse = PaymentResponse(
+                code: uri.queryParameters['code'],
+                amount: uri.queryParameters['amount'],
+                itk: uri.queryParameters['itk'],
+                type: uri.queryParameters['type'],
+                installmentCount: uri.queryParameters['installment_count'],
+                brand: uri.queryParameters['brand'],
+                entryMode: uri.queryParameters['entry_mode'],
+                atk: uri.queryParameters['atk'],
+                pan: uri.queryParameters['pan'],
+                authorizationCode: uri.queryParameters['authorization_code'],
+                authorizationDateTime:
+                    uri.queryParameters['authorization_date_time'],
                 success:
                     uri.queryParameters['success'] == "true" ? true : false,
-                message: uri.queryParameters['message'],
+                message: uri.queryParameters['success'] == "true"
+                    ? "OK"
+                    : uri.queryParameters['message'],
                 reason: uri.queryParameters['reason'],
                 responseCode: uri.queryParameters['response_code']);
             _controller.add(paymentResponse);
@@ -39,23 +52,10 @@ class PaymentService {
           responseCode: "9999"));
     }
     try {
-      int amount = 001;
-      bool editableAmount = false; //true, false
-      int installmentCount; //número de 2 a 18
-      String transactionType = "CREDIT"; //DEBIT, CREDIT, VOUCHER
-      String installmentType; //MERCHANT, ISSUER, NONE
-      int orderId;
-      String returnScheme = "flutterdeeplinkdemo";
-
-      await _messagesChannel.invokeMethod('sendDeeplink', {
-        "amount": amount,
-        "editableAmount": editableAmount,
-        "installmentCount": installmentCount,
-        "transactionType": transactionType,
-        "installmentType": installmentType,
-        "orderId": orderId,
-        "returnScheme": returnScheme
-      });
+      await _messagesChannel.invokeMethod(
+        'sendDeeplink',
+        paymentRequest.toJson(),
+      );
     } on PlatformException catch (e) {
       _controller.add(PaymentResponse(
           success: false,
