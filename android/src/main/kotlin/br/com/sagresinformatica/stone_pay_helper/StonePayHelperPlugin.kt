@@ -20,7 +20,7 @@ import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.common.PluginRegistry.Registrar
 
 /** StonePayHelperPlugin */
-class StonePayHelperPlugin: FlutterPlugin, MethodCallHandler, ActivityAware, PluginRegistry.NewIntentListener {
+class StonePayHelperPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
   /// The MethodChannel that will the communication between Flutter and native Android
   ///
   /// This local reference serves to register the plugin with the Flutter Engine and unregister it
@@ -101,10 +101,11 @@ class StonePayHelperPlugin: FlutterPlugin, MethodCallHandler, ActivityAware, Plu
     }
 
     private fun handleDeepLinkResponse(intent: Intent) {
+       Log.v(TAG, "handleDeepLinkResponse")
         try {
-            Log.v(TAG, intent?.data.toString())
             if (intent?.data != null) {
                 Toast.makeText(activity, intent.data.toString(), Toast.LENGTH_LONG).show()
+                channel.invokeMethod("checkoutCallback", intent.data.toString())
                 Log.v(TAG, intent.data.toString())
             }
         } catch (e: Exception) {
@@ -113,13 +114,7 @@ class StonePayHelperPlugin: FlutterPlugin, MethodCallHandler, ActivityAware, Plu
         }
     }
 
-    override fun onNewIntent(intent: Intent): Boolean {
-    Log.v(TAG, intent?.data.toString())
-    if (intent != null) {
-      handleDeepLinkResponse(intent)
-    }
-    return false
-  }
+  
 
 
     companion object {
@@ -143,6 +138,11 @@ class StonePayHelperPlugin: FlutterPlugin, MethodCallHandler, ActivityAware, Plu
   }
   override fun onAttachedToActivity(binding: ActivityPluginBinding) {
     this.activity = binding.activity
+    binding.addOnNewIntentListener(fun(intent: Intent?): Boolean {
+      intent?.let { handleDeepLinkResponse(it) }
+      return false;
+    })
+    handleDeepLinkResponse(binding.activity.intent)
   }
   override fun onDetachedFromActivityForConfigChanges() {}
 

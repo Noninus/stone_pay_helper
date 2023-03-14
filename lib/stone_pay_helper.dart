@@ -1,38 +1,23 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
+import 'package:stone_pay_helper/payment_service/payment_response.dart';
+import 'package:stone_pay_helper/payment_service/payment_service.dart';
 
 class StonePayHelper {
   static const MethodChannel _channel = const MethodChannel('stone_pay_helper');
+  static PaymentService _paymentService;
 
-  static Future<String> get platformVersion async {
-    final String version = await _channel.invokeMethod('getPlatformVersion');
-    return version;
+  static init() {
+    _paymentService = PaymentService(_channel);
   }
 
-  static Future<String> get checkout async {
-    String _message = "";
-    try {
-      int amount = 001;
-      bool editableAmount = false; //true, false
-      int installmentCount; //número de 2 a 18
-      String transactionType = "CREDIT"; //DEBIT, CREDIT, VOUCHER
-      String installmentType; //MERCHANT, ISSUER, NONE
-      int orderId;
-      String returnScheme = "flutterdeeplinkdemo";
-
-      await _channel.invokeMethod('sendDeeplink', {
-        "amount": amount,
-        "editableAmount": editableAmount,
-        "installmentCount": installmentCount,
-        "transactionType": transactionType,
-        "installmentType": installmentType,
-        "orderId": orderId,
-        "returnScheme": returnScheme
-      });
-    } on PlatformException catch (e) {
-      _message = "Erro ao enviar deeplink: ${e.message}.";
-    }
-    return _message;
+  /// Sends a [CheckoutRequest] to Lio and waits until the payment is finished or canceled to execute [callback]
+  static checkout() {
+    _paymentService.checkout();
   }
+
+  /// Stream do checkout
+  static Stream<PaymentResponse> get checkoutStreamListen =>
+      _paymentService.streamData;
 }
