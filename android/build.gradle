@@ -2,7 +2,18 @@ group 'br.com.sagresinformatica.stone_pay_helper'
 version '1.0-SNAPSHOT'
 
 buildscript {
-    ext.kotlin_version = '1.6.10'
+    ext {
+        kotlin_version = '1.6.10'
+        stone_sdk_version = '4.5.3'
+
+        localProp = new Properties()
+        fileName = 'local.properties'
+        if (project.rootProject.file(fileName).exists()) {
+            localProp.load(new FileInputStream(rootProject.file(fileName)))
+        }
+        packageCloudReadToken = System.env.PACKAGECLOUD_READ_TOKEN != null ? System.env.PACKAGECLOUD_READ_TOKEN  : localProp["packageCloudReadToken"] ?: ""
+    }
+    
     repositories {
         google()
         jcenter()
@@ -16,6 +27,7 @@ buildscript {
 
 rootProject.allprojects {
     repositories {
+        maven { url "https://packagecloud.io/priv/${packageCloudReadToken}/stone/pos-android/maven2" }
         google()
         jcenter()
     }
@@ -39,5 +51,8 @@ android {
 }
 
 dependencies {
+    implementation "br.com.stone:stone-sdk:$stone_sdk_version"
+    implementation "br.com.stone:stone-sdk-posandroid:$stone_sdk_version"
+    implementation "br.com.stone:stone-sdk-posandroid-sunmi:$stone_sdk_version"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
