@@ -73,11 +73,17 @@ class StonePayHelperPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
 
       result.success(true)
     } else if (call.method == "isStone") {
-      val isStone = Stone.getPinpadListSize()
+      val isStone = Stone.getPosAndroidDevice().getPosAndroidManufacturer()
       if (isStone == null) {
         result.error("ec_null", "Couldn't retrieve ec", null)
       }
       result.success(isStone)
+    } else if (call.method == "getEc") {
+      val ec = Stone.getPosAndroidDevice().getPosAndroidManufacturer()
+      if (ec == null) {
+        result.error("ec_null", "Couldn't retrieve ec", null)
+      }
+      result.success(ec)
     } else {
       result.notImplemented()
     }

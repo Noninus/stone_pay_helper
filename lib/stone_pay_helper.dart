@@ -47,4 +47,15 @@ class StonePayHelper {
     }
     return isStone;
   }
+
+  /// Returns the ec
+  static Future<String> get ec async {
+    String ec;
+    try {
+      ec = await _channel.invokeMethod('getEc');
+    } catch (e) {
+      ec = "error";
+    }
+    return ec;
+  }
 }
