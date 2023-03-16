@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:stone_pay_helper_example/payment_test_screen.dart';
+import 'package:stone_pay_helper_example/printer_test_screen.dart';
 
 void main() {
   runApp(
@@ -35,6 +36,14 @@ class _MyAppState extends State<MyApp> {
             SizedBox(
               height: 10,
             ),
+            ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => PrinterTestScreen()));
+                },
+                child: Text("Ir para Printer")),
           ],
         ),
       ),

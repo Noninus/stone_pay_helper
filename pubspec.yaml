@@ -8,6 +8,7 @@ environment:
   flutter: ">=1.20.0"
 
 dependencies:
+  image: ^4.0.15
   flutter:
     sdk: flutter
 

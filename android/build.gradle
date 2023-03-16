@@ -27,9 +27,10 @@ buildscript {
 
 rootProject.allprojects {
     repositories {
-        maven { url "https://packagecloud.io/priv/${packageCloudReadToken}/stone/pos-android/maven2" }
         google()
         jcenter()
+        maven { url "https://packagecloud.io/priv/46ad1e74fa5c17c9581c1d9c3beee1120b35870faa6136cf/stone/pos-android/maven2" }
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
     }
 }
 
@@ -51,8 +52,9 @@ android {
 }
 
 dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation "br.com.stone:stone-sdk:$stone_sdk_version"
     implementation "br.com.stone:stone-sdk-posandroid:$stone_sdk_version"
     implementation "br.com.stone:stone-sdk-posandroid-sunmi:$stone_sdk_version"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
