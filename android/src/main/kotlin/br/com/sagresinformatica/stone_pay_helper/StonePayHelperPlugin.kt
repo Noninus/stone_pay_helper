@@ -72,7 +72,13 @@ class StonePayHelperPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
       posPrintProvider.execute()
 
       result.success(true)
-    }else {
+    } else if (call.method == "isStone") {
+      val isStone = Stone.getPinpadListSize()
+      if (isStone == null) {
+        result.error("ec_null", "Couldn't retrieve ec", null)
+      }
+      result.success(isStone)
+    } else {
       result.notImplemented()
     }
   }

@@ -35,4 +35,16 @@ class StonePayHelper {
   static printText(String text) {
     _printerService.printText(text);
   }
+
+  /// Returns the establishment code from InfoManager of Lio
+  static Future<bool> get isStone async {
+    bool isStone = false;
+    try {
+      await _channel.invokeMethod('isStone');
+      isStone = true;
+    } catch (e) {
+      isStone = false;
+    }
+    return isStone;
+  }
 }
