@@ -13,6 +13,17 @@ a seguintes linhas:
     }
 
 
+Necessario também no AndroidManifest colocar o intent filter para conseguir pegar os retornos:
+
+    <intent-filter>
+    <action android:name="android.intent.action.VIEW" />
+    <category android:name="android.intent.category.DEFAULT" />
+    <category android:name="android.intent.category.BROWSABLE" />
+    <data
+        android:host="pay-response"
+        android:scheme="@string/return_scheme" />
+    </intent-filter>
+
 
 ## Utilização
 
