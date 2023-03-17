@@ -55,6 +55,7 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     initECState();
     initECState1();
+    StonePayHelper.init();
     super.initState();
   }
 

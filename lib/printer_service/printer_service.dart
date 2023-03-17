@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/services.dart';
@@ -5,6 +6,10 @@ import 'package:image/image.dart' as img;
 
 class PrinterService {
   final MethodChannel _messagesChannel;
+
+  static StreamController<String> _controller = StreamController.broadcast();
+
+  Stream<String> get streamData => _controller.stream;
 
   PrinterService(this._messagesChannel);
 
@@ -17,10 +22,25 @@ class PrinterService {
     return base64Encode(img.encodeJpg(image));
   }
 
+  listenCallback() {
+    try {
+      _messagesChannel.setMethodCallHandler((call) async {
+        switch (call.method) {
+          case "printerCallback":
+            _controller.add(call.arguments);
+            break;
+          default:
+        }
+      });
+    } on PlatformException catch (e) {
+      _controller.add("error");
+    }
+  }
+
   printBase64(String base64) async {
     img.Image imagemResized = b64ToImage(base64);
     String imageBase64 = imageToBase64(imagemResized);
-    print(imageBase64);
+    await listenCallback();
     await _messagesChannel.invokeMethod(
       'printBase64',
       {"base64": imageBase64},
@@ -28,6 +48,7 @@ class PrinterService {
   }
 
   printText(String text) async {
+    await listenCallback();
     await _messagesChannel.invokeMethod(
       'printText',
       {"text": text},

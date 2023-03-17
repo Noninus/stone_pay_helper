@@ -20,7 +20,6 @@ class _PaymentTestScreenState extends State<PaymentTestScreen> {
   @override
   void initState() {
     super.initState();
-    StonePayHelper.init();
     subscription = StonePayHelper.checkoutStreamListen
         .listen((PaymentResponse paymentResponse) {
       print("===== CALLBACK ${paymentResponse.success} =======");

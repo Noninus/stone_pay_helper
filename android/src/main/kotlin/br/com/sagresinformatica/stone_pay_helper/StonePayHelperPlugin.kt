@@ -19,9 +19,11 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.common.PluginRegistry.Registrar
+
 import stone.application.StoneStart;
 import stone.utils.Stone;
-
+import stone.application.enums.Action;
+import stone.application.interfaces.StoneActionCallback;
 import br.com.stone.posandroid.providers.PosPrintProvider;
 
 /** StonePayHelperPlugin */
@@ -63,12 +65,14 @@ class StonePayHelperPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
     } else if (call.method == "printBase64") {
       val posPrintProvider = PosPrintProvider(context)
       posPrintProvider.addBase64Image(call.argument<String>("base64").orEmpty())
+      addCallBack(posPrintProvider)
       posPrintProvider.execute()
 
       result.success(true)
     } else if (call.method == "printText") {
       val posPrintProvider = PosPrintProvider(context)
       posPrintProvider.addLine(call.argument<String>("text").orEmpty())
+      addCallBack(posPrintProvider)
       posPrintProvider.execute()
 
       result.success(true)
@@ -86,6 +90,23 @@ class StonePayHelperPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
       result.success(ec)
     } else {
       result.notImplemented()
+    }
+  }
+
+  private fun addCallBack(posPrintProvider: PosPrintProvider){
+    posPrintProvider.connectionCallback = object : StoneActionCallback {
+      override fun onSuccess() {
+        // Toast.makeText(activity, "Recibo impresso", Toast.LENGTH_SHORT).show();
+        channel.invokeMethod("printerCallback", "success")
+      }
+      override fun onError() {
+        // Toast.makeText(activity, "error: " + posPrintProvider.getListOfErrors(), Toast.LENGTH_SHORT).show();
+        channel.invokeMethod("printerCallback", "error: " + posPrintProvider.getListOfErrors())
+      }
+      override fun onStatusChanged(action: Action?) {
+        // Toast.makeText(activity, "onStatusChanged: " + action?.name, Toast.LENGTH_SHORT).show();
+        // channel.invokeMethod("printerCallback", "status: " + action?.name)
+      }
     }
   }
 

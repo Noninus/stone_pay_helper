@@ -36,6 +36,9 @@ class StonePayHelper {
     _printerService.printText(text);
   }
 
+  /// Stream do checkout
+  static Stream<String> get printerStreamListen => _printerService.streamData;
+
   /// Returns the establishment code from InfoManager of Lio
   static Future<bool> get isStone async {
     bool isStone = false;

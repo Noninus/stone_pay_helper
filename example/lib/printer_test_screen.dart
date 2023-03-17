@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'dart:async';
 
 import 'package:flutter/services.dart';
@@ -12,10 +13,33 @@ class PrinterTestScreen extends StatefulWidget {
 }
 
 class _PrinterTestScreenState extends State<PrinterTestScreen> {
+  StreamSubscription subscription;
+  bool successPrint = true;
+  final globalScaffoldKey = GlobalKey<ScaffoldMessengerState>();
   @override
   void initState() {
     super.initState();
-    StonePayHelper.init();
+    subscription =
+        StonePayHelper.printerStreamListen.listen((String printerCallback) {
+      print("===== CALLBACK $printerCallback =======");
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        if (printerCallback.contains("error")) {
+          if (printerCallback.contains("PRINTER_OUT_OF_PAPER_ERROR")) {
+            print("sem papel");
+          }
+          setState(() {
+            print("erro");
+            successPrint = false;
+          });
+        }
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    subscription.cancel();
+    super.dispose();
   }
 
   Future<void> printBase64() async {
@@ -50,6 +74,7 @@ class _PrinterTestScreenState extends State<PrinterTestScreen> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
+        key: globalScaffoldKey,
         appBar: AppBar(
           title: const Text('Plugin example app'),
         ),
@@ -79,6 +104,9 @@ class _PrinterTestScreenState extends State<PrinterTestScreen> {
             SizedBox(
               height: 10,
             ),
+            successPrint
+                ? Icon(Icons.check_circle_outline, color: Colors.green)
+                : Icon(Icons.error, color: Colors.red)
           ],
         ),
       ),
