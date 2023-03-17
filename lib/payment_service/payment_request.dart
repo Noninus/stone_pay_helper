@@ -40,37 +40,3 @@ class PaymentRequest {
     return data;
   }
 }
-
-class Item {
-  String? sku;
-  String? name;
-  int? unitPrice;
-  int? quantity;
-  String? unitOfMeasure;
-
-  Item({
-    this.sku,
-    this.name,
-    this.unitPrice,
-    this.quantity,
-    this.unitOfMeasure,
-  });
-
-  Item.fromJson(Map<String?, dynamic> json) {
-    sku = json['sku'];
-    name = json['name'];
-    unitPrice = json['unitPrice'];
-    quantity = json['quantity'];
-    unitOfMeasure = json['unitOfMeasure'];
-  }
-
-  Map<String?, dynamic> toJson() {
-    final Map<String?, dynamic> data = {};
-    data['sku'] = sku;
-    data['name'] = name;
-    data['unitPrice'] = unitPrice;
-    data['quantity'] = quantity;
-    data['unitOfMeasure'] = unitOfMeasure;
-    return data;
-  }
-}
