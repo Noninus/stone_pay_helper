@@ -45,7 +45,7 @@ class StonePayHelperPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
  
   override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
     if (call.method == "getPlatformVersion") {
-      Toast.makeText(activity, "Hello!",Toast.LENGTH_SHORT).show()
+      //Toast.makeText(activity, "Hello!",Toast.LENGTH_SHORT).show()
       result.success("Android ${android.os.Build.VERSION.RELEASE}")
     } else if (call.method == "sendDeeplink") {
       sendDeeplink(
@@ -160,12 +160,12 @@ class StonePayHelperPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
        Log.v(TAG, "handleDeepLinkResponse")
         try {
             if (intent?.data != null) {
-                Toast.makeText(activity, intent.data.toString(), Toast.LENGTH_LONG).show()
+                //Toast.makeText(activity, intent.data.toString(), Toast.LENGTH_LONG).show()
                 channel.invokeMethod("checkoutCallback", intent.data.toString())
                 Log.v(TAG, intent.data.toString())
             }
         } catch (e: Exception) {
-            Toast.makeText(activity, e.toString(), Toast.LENGTH_LONG).show()
+            //Toast.makeText(activity, e.toString(), Toast.LENGTH_LONG).show()
             Log.v(TAG, e.toString())
         }
     }
