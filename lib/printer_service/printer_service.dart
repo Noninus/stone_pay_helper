@@ -15,7 +15,11 @@ class PrinterService {
 
   img.Image b64ToImage(String b64) {
     img.Image? image = img.decodeImage(base64.decode(b64));
-    return img.copyResize(image!, width: 380);
+    if (image!.width > 385) {
+      return img.copyResize(image, width: 380);
+    } else {
+      return image;
+    }
   }
 
   String imageToBase64(img.Image image) {

@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:stone_pay_helper/stone_pay_helper.dart';
 import 'package:stone_pay_helper_example/img_nota.dart';
 import 'package:stone_pay_helper_example/img_string.dart';
+import 'package:stone_pay_helper_example/img_string_ja_convertida.dart';
 
 class PrinterTestScreen extends StatefulWidget {
   @override
@@ -60,6 +61,15 @@ class _PrinterTestScreenState extends State<PrinterTestScreen> {
     if (!mounted) return;
   }
 
+  Future<void> printBase64JaConvertidaPreConta() async {
+    try {
+      await StonePayHelper.printBase64(imgJaConvertida380);
+    } on PlatformException {
+      print('Failed to get platform version.');
+    }
+    if (!mounted) return;
+  }
+
   Future<void> printText() async {
     try {
       await StonePayHelper.printText(
@@ -100,7 +110,12 @@ class _PrinterTestScreenState extends State<PrinterTestScreen> {
                 onPressed: () {
                   printBase64PreConta();
                 },
-                child: Text("print pre conta")),
+                child: Text("print pre conta convertida por flutter")),
+            ElevatedButton(
+                onPressed: () {
+                  printBase64JaConvertidaPreConta();
+                },
+                child: Text("printBase64JaConvertidaPreContaSemFlutter")),
             SizedBox(
               height: 10,
             ),
