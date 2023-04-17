@@ -43,8 +43,12 @@ class StonePayHelper {
   static Future<bool> get isStone async {
     bool isStone = false;
     try {
-      await _channel.invokeMethod('isStone');
-      isStone = true;
+      String resStone = await _channel.invokeMethod('isStone');
+      if (resStone.toUpperCase() == "MOBILE") {
+        isStone = false;
+      } else {
+        isStone = true;
+      }
     } catch (e) {
       isStone = false;
     }
