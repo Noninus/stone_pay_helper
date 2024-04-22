@@ -4,7 +4,7 @@ version '1.0-SNAPSHOT'
 buildscript {
     ext {
         kotlin_version = '1.6.10'
-        stone_sdk_version = '4.5.3'
+        stone_sdk_version = '4.8.7'
 
         localProp = new Properties()
         fileName = 'local.properties'
@@ -38,7 +38,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 33
+    compileSdkVersion 34
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
