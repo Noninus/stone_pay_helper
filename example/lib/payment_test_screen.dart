@@ -15,7 +15,7 @@ class PaymentTestScreen extends StatefulWidget {
 class _PaymentTestScreenState extends State<PaymentTestScreen> {
   String _platformVersion = 'Unknown';
 
-  StreamSubscription subscription;
+  StreamSubscription? subscription;
 
   @override
   void initState() {
@@ -25,7 +25,7 @@ class _PaymentTestScreenState extends State<PaymentTestScreen> {
       print("===== CALLBACK ${paymentResponse.success} =======");
       SchedulerBinding.instance.addPostFrameCallback((_) {
         setState(() {
-          _platformVersion = paymentResponse.message;
+          _platformVersion = paymentResponse.message ?? 'No message';
         });
       });
     });
@@ -58,7 +58,7 @@ class _PaymentTestScreenState extends State<PaymentTestScreen> {
 
   @override
   void dispose() {
-    subscription.cancel();
+    subscription?.cancel();
     super.dispose();
   }
 

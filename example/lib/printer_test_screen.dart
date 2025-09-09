@@ -14,7 +14,7 @@ class PrinterTestScreen extends StatefulWidget {
 }
 
 class _PrinterTestScreenState extends State<PrinterTestScreen> {
-  StreamSubscription subscription;
+  StreamSubscription? subscription;
   bool successPrint = true;
   final globalScaffoldKey = GlobalKey<ScaffoldMessengerState>();
   @override
@@ -39,7 +39,7 @@ class _PrinterTestScreenState extends State<PrinterTestScreen> {
 
   @override
   void dispose() {
-    subscription.cancel();
+    subscription?.cancel();
     super.dispose();
   }
 

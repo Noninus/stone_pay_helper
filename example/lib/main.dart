@@ -22,7 +22,7 @@ class _MyAppState extends State<MyApp> {
   String _ec2 = "";
 
   Future<void> initECState() async {
-    bool isStone;
+    bool isStone = false;
     try {
       isStone = await StonePayHelper.isStone;
     } on PlatformException {
@@ -37,11 +37,12 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> initECState1() async {
-    String ec;
+    String ec = '';
     try {
       ec = await StonePayHelper.ec;
     } on PlatformException {
       _ec = 'Failed to get ec.';
+      return;
     }
 
     if (!mounted) return;
