@@ -30,11 +30,13 @@ android {
     }
 
     // **3 sabores** para mudar só as dependências
-    flavorDimensions "oem"
-    productFlavors {
-        sunmi    { dimension "oem" }
-        positivo { dimension "oem" }
-        tectoy   { dimension "oem" }
+    if (project.hasProperty('enableFlavors')) {
+        flavorDimensions "oem"
+        productFlavors {
+            sunmi { dimension "oem" }
+            positivo { dimension "oem" }
+            tectoy { dimension "oem" }
+        }
     }
 
     sourceSets {
@@ -67,12 +69,12 @@ dependencies {
     // Núcleo do SDK (entra em TODOS os flavors)
     implementation "br.com.stone:stone-sdk:${stone_sdk_version}"
     implementation "br.com.stone:stone-sdk-posandroid:${stone_sdk_version}"
-    implementation "br.com.stone:stone-sdk-posandroid-sunmi:$stone_sdk_version"
-    implementation "br.com.stone:stone-sdk-posandroid-ingenico:$stone_sdk_version"
+    
 
 
     // **AQUI está a mágica**: cada flavor puxa SOMENTE sua lib de fabricante
     sunmiImplementation    "br.com.stone:stone-sdk-posandroid-sunmi:${stone_sdk_version}"
+    sunmiImplementation "br.com.stone:stone-sdk-posandroid-ingenico:$stone_sdk_version"
     positivoImplementation "br.com.stone:stone-sdk-posandroid-positivo:${stone_sdk_version}"
     tectoyImplementation   "br.com.stone:stone-sdk-posandroid-tectoy:${stone_sdk_version}"
 
