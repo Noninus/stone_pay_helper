@@ -32,6 +32,7 @@ android {
     // **3 sabores** para mudar só as dependências
     flavorDimensions "oem"
     productFlavors {
+        vanilla  { dimension "oem" }
         sunmi    { dimension "oem" }
         positivo { dimension "oem" }
         tectoy   { dimension "oem" }
