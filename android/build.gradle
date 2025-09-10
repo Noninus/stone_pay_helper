@@ -1,71 +1,80 @@
 group 'br.com.sagresinformatica.stone_pay_helper'
 version '1.0-SNAPSHOT'
 
-buildscript {
-    ext {
-        kotlin_version = '1.9.10'
-        stone_sdk_version = '4.11.6'
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
 
-        localProp = new Properties()
-        fileName = 'local.properties'
-        if (project.rootProject.file(fileName).exists()) {
-            localProp.load(new FileInputStream(rootProject.file(fileName)))
-        }
-        packageCloudReadToken = System.env.PACKAGECLOUD_READ_TOKEN != null ? System.env.PACKAGECLOUD_READ_TOKEN  : localProp["packageCloudReadToken"] ?: ""
-    }
-    
-    repositories {
-        google()
-        jcenter()
-    }
-
-    dependencies {
-        classpath 'com.android.tools.build:gradle:8.1.4'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-    }
+ext {
+    // centralize a versão do Stone
+    stone_sdk_version = '4.11.6'
 }
 
+// Repositórios usados pelo plugin (pega os do root também)
 rootProject.allprojects {
     repositories {
         google()
-        jcenter()
+        mavenCentral()
+        // mantenha seu repo privado da Stone:
         maven { url "https://packagecloud.io/priv/46ad1e74fa5c17c9581c1d9c3beee1120b35870faa6136cf/stone/pos-android/maven2" }
         maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
     }
 }
 
-apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
-
 android {
     namespace 'br.com.sagresinformatica.stone_pay_helper'
-    compileSdkVersion 34
+    compileSdkVersion 34   // pode deixar 34; se seu app já está em 35, também funciona
+
+    defaultConfig {
+        minSdkVersion 24   // Stone 4.11.x exige 24+
+        consumerProguardFiles 'consumer-rules.pro'
+    }
+
+    // **3 sabores** para mudar só as dependências
+    flavorDimensions "oem"
+    productFlavors {
+        sunmi    { dimension "oem" }
+        positivo { dimension "oem" }
+        tectoy   { dimension "oem" }
+    }
 
     sourceSets {
+        // mantém TODO o seu código em src/main/kotlin
         main.java.srcDirs += 'src/main/kotlin'
     }
-    defaultConfig {
-        minSdkVersion 22
-    }
+
     lintOptions {
         disable 'InvalidPackage'
     }
-    
+
+    // Java 17 + desugaring (necessário p/ sealed/records usados pelo Stone 4.11.x)
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+        coreLibraryDesugaringEnabled true
     }
-    
+
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '17'
     }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation "br.com.stone:stone-sdk:$stone_sdk_version"
-    implementation "br.com.stone:stone-sdk-posandroid:$stone_sdk_version"
-    implementation "br.com.stone:stone-sdk-posandroid-sunmi:$stone_sdk_version"
-    implementation "br.com.stone:stone-sdk-posandroid-ingenico:$stone_sdk_version"
+
+    // stdlib (o plugin kotlin do root já costuma injetar, mas deixo explícito)
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
+
+    // Núcleo do SDK (entra em TODOS os flavors)
+    implementation "br.com.stone:stone-sdk:${stone_sdk_version}"
+    implementation "br.com.stone:stone-sdk-posandroid:${stone_sdk_version}"
+
+    // **AQUI está a mágica**: cada flavor puxa SOMENTE sua lib de fabricante
+    sunmiImplementation    "br.com.stone:stone-sdk-posandroid-sunmi:${stone_sdk_version}"
+    positivoImplementation "br.com.stone:stone-sdk-posandroid-positivo:${stone_sdk_version}"
+    tectoyImplementation   "br.com.stone:stone-sdk-posandroid-tectoy:${stone_sdk_version}"
+
+    // Se você tinha 'ingenico', remova — vamos usar 'positivo' e 'tectoy' agora
+
+    // Desugaring libs (Java 17 em Android antigo)
+    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.0.4"
 }
