@@ -71,10 +71,10 @@ dependencies {
 
 
     // **AQUI está a mágica**: cada flavor puxa SOMENTE sua lib de fabricante
-    sunmiImplementation    "br.com.stone:stone-sdk-posandroid-sunmi:${stone_sdk_version}"
-    sunmiImplementation "br.com.stone:stone-sdk-posandroid-ingenico:$stone_sdk_version"
-    positivoImplementation "br.com.stone:stone-sdk-posandroid-positivo:${stone_sdk_version}"
-    tectoyImplementation   "br.com.stone:stone-sdk-posandroid-tectoy:${stone_sdk_version}"
+    // sunmiImplementation    "br.com.stone:stone-sdk-posandroid-sunmi:${stone_sdk_version}"
+    // sunmiImplementation "br.com.stone:stone-sdk-posandroid-ingenico:$stone_sdk_version"
+    // positivoImplementation "br.com.stone:stone-sdk-posandroid-positivo:${stone_sdk_version}"
+    // tectoyImplementation   "br.com.stone:stone-sdk-posandroid-tectoy:${stone_sdk_version}"
 
     // Se você tinha 'ingenico', remova — vamos usar 'positivo' e 'tectoy' agora
 
