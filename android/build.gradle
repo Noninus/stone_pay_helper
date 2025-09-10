@@ -30,14 +30,12 @@ android {
     }
 
     // **3 sabores** para mudar só as dependências
-    if (project.hasProperty('enableFlavors')) {
-        flavorDimensions "oem"
-        productFlavors {
-            sunmi { dimension "oem" }
-            positivo { dimension "oem" }
-            tectoy { dimension "oem" }
-        }
-    }
+    // flavorDimensions "oem"
+    // productFlavors {
+    //     sunmi { dimension "oem" }
+    //     positivo { dimension "oem" }
+    //     tectoy { dimension "oem" }
+    // }
 
     sourceSets {
         // mantém TODO o seu código em src/main/kotlin
