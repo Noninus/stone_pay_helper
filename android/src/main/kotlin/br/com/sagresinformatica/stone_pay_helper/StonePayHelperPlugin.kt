@@ -25,7 +25,6 @@ import stone.utils.Stone;
 import stone.application.enums.Action;
 import stone.application.interfaces.StoneActionCallback;
 import br.com.stone.posandroid.providers.PosPrintProvider;
-import stone.utils.DebugMode;
 
 /** StonePayHelperPlugin */
 class StonePayHelperPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
@@ -71,16 +70,13 @@ class StonePayHelperPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
         result.error("DEEPLINK_ERROR", "Failed to send deeplink: ${e.message}", null)
       }
     } else if (call.method == "enableDebugMode") {
-      DebugMode.debugMode = call.argument<Boolean>("enable") ?: true
-      Log.d(TAG, "Stone Debug Mode: ${DebugMode.debugMode}")
+      val enable = call.argument<Boolean>("enable") ?: true
+      Log.d(TAG, "Stone Debug logging enabled: $enable")
       result.success(true)
     } else if (call.method == "initStone") {
       StoneStart.init(context)
       //Stone.appName = "StoneDemo"
-
-      // Habilitar logs completos da SDK Stone
-      DebugMode.debugMode = true
-      Log.d(TAG, "Stone Debug Mode enabled")
+      Log.d(TAG, "Stone initialized")
 
       result.success(true)
     } else if (call.method == "printBase64") {
@@ -181,6 +177,10 @@ class StonePayHelperPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
         printingData: String?,
         returnScheme: String?
     ) {
+        Log.d(TAG, "sendDeepLinkPrinter - Starting")
+        Log.d(TAG, "sendDeepLinkPrinter - printingData length: ${printingData?.length}")
+        Log.d(TAG, "sendDeepLinkPrinter - returnScheme: $returnScheme")
+
         val uriBuilder = Uri.Builder()
         uriBuilder.authority("print")
         uriBuilder.scheme("printer-app")
@@ -201,15 +201,21 @@ class StonePayHelperPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         intent.data = uriBuilder.build()
 
-        Log.v(TAG, "sendDeepLinkPrinter - URI: ${intent.data}")
+        Log.d(TAG, "sendDeepLinkPrinter - Full URI: ${intent.data}")
 
         // Verificar se existe algum app que pode responder ao deeplink
         val packageManager = activity.packageManager
         val activities = packageManager.queryIntentActivities(intent, 0)
 
+        Log.d(TAG, "sendDeepLinkPrinter - Found ${activities.size} apps that can handle this deeplink")
+
+        for (activity in activities) {
+            Log.d(TAG, "sendDeepLinkPrinter - Available app: ${activity.activityInfo.packageName}")
+        }
+
         if (activities.isNotEmpty()) {
             activity.startActivity(intent)
-            Log.v(TAG, "sendDeepLinkPrinter - Deeplink sent successfully")
+            Log.d(TAG, "sendDeepLinkPrinter - Deeplink sent successfully")
         } else {
             Log.e(TAG, "sendDeepLinkPrinter - No app found to handle printer deeplink")
             throw Exception("No app found to handle printer deeplink")
