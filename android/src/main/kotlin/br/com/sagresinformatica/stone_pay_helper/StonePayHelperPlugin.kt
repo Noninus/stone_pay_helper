@@ -170,14 +170,16 @@ class StonePayHelperPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
         uriBuilder.authority("print")
         uriBuilder.scheme("printer-app")
 
+        uriBuilder.appendQueryParameter("SHOW_FEEDBACK_SCREEN", "true")
+
         if (returnScheme != null) {
-            uriBuilder.appendQueryParameter(RETURN_SCHEME, returnScheme)
+            uriBuilder.appendQueryParameter("SCHEME_RETURN", returnScheme)
         } else {
-            uriBuilder.appendQueryParameter(RETURN_SCHEME, "flutterdeeplinkdemo")
+            uriBuilder.appendQueryParameter("SCHEME_RETURN", "flutterdeeplinkdemo")
         }
 
         if (printingData != null) {
-            uriBuilder.appendQueryParameter("printing_data", printingData)
+            uriBuilder.appendQueryParameter("PRINTABLE_CONTENT", printingData)
         }
 
         val intent = Intent(Intent.ACTION_VIEW)
