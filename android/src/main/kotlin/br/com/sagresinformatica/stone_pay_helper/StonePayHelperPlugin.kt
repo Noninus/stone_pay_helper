@@ -59,11 +59,16 @@ class StonePayHelperPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
       )
       result.success(true)
     } else if (call.method == "sendDeepLinkPrinter") {
-      sendDeepLinkPrinter(
-          call.argument<String>("printingData"),
-          call.argument<String>("returnScheme")
-      )
-      result.success(true)
+      try {
+        sendDeepLinkPrinter(
+            call.argument<String>("printingData"),
+            call.argument<String>("returnScheme")
+        )
+        result.success(true)
+      } catch (e: Exception) {
+        Log.e(TAG, "Error sending deeplink printer: ${e.message}")
+        result.error("DEEPLINK_ERROR", "Failed to send deeplink: ${e.message}", null)
+      }
     } else if (call.method == "initStone") {
       StoneStart.init(context)
       //Stone.appName = "StoneDemo"
@@ -185,9 +190,20 @@ class StonePayHelperPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
         val intent = Intent(Intent.ACTION_VIEW)
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         intent.data = uriBuilder.build()
-        activity.startActivity(intent)
 
-        Log.v(TAG, "sendDeepLinkPrinter - toUri(scheme = ${intent.data})")
+        Log.v(TAG, "sendDeepLinkPrinter - URI: ${intent.data}")
+
+        // Verificar se existe algum app que pode responder ao deeplink
+        val packageManager = activity.packageManager
+        val activities = packageManager.queryIntentActivities(intent, 0)
+
+        if (activities.isNotEmpty()) {
+            activity.startActivity(intent)
+            Log.v(TAG, "sendDeepLinkPrinter - Deeplink sent successfully")
+        } else {
+            Log.e(TAG, "sendDeepLinkPrinter - No app found to handle printer deeplink")
+            throw Exception("No app found to handle printer deeplink")
+        }
     }
 
     private fun handleDeepLinkResponse(intent: Intent) {
