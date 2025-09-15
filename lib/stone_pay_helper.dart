@@ -65,4 +65,20 @@ class StonePayHelper {
     }
     return ec;
   }
+
+  /// Sends deeplink printer request with stylized content
+  static Future<bool> sendDeepLinkPrinter({
+    required String printingData,
+    String? returnScheme,
+  }) async {
+    try {
+      await _channel.invokeMethod('sendDeepLinkPrinter', {
+        'printingData': printingData,
+        'returnScheme': returnScheme,
+      });
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
 }

@@ -58,6 +58,12 @@ class StonePayHelperPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
           call.argument<String>("returnScheme")
       )
       result.success(true)
+    } else if (call.method == "sendDeepLinkPrinter") {
+      sendDeepLinkPrinter(
+          call.argument<String>("printingData"),
+          call.argument<String>("returnScheme")
+      )
+      result.success(true)
     } else if (call.method == "initStone") {
       StoneStart.init(context)
       //Stone.appName = "StoneDemo"
@@ -154,6 +160,32 @@ class StonePayHelperPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
         activity.startActivity(intent)
 
         Log.v(TAG, "toUri(scheme = ${intent.data})")
+    }
+
+    private fun sendDeepLinkPrinter(
+        printingData: String?,
+        returnScheme: String?
+    ) {
+        val uriBuilder = Uri.Builder()
+        uriBuilder.authority("print")
+        uriBuilder.scheme("printer-app")
+
+        if (returnScheme != null) {
+            uriBuilder.appendQueryParameter(RETURN_SCHEME, returnScheme)
+        } else {
+            uriBuilder.appendQueryParameter(RETURN_SCHEME, "flutterdeeplinkdemo")
+        }
+
+        if (printingData != null) {
+            uriBuilder.appendQueryParameter("printing_data", printingData)
+        }
+
+        val intent = Intent(Intent.ACTION_VIEW)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        intent.data = uriBuilder.build()
+        activity.startActivity(intent)
+
+        Log.v(TAG, "sendDeepLinkPrinter - toUri(scheme = ${intent.data})")
     }
 
     private fun handleDeepLinkResponse(intent: Intent) {
