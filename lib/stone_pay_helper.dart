@@ -17,6 +17,16 @@ class StonePayHelper {
     _printerService = PrinterService(_channel);
   }
 
+  /// Enable or disable Stone SDK debug mode for complete logs
+  static Future<bool> enableDebugMode({bool enable = true}) async {
+    try {
+      await _channel.invokeMethod('enableDebugMode', {'enable': enable});
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   /// Sends a [PaymentRequest] to Lio and waits until the payment is finished or canceled to execute [callback]
   static checkout(PaymentRequest paymentRequest) {
     _paymentService.checkout(paymentRequest);

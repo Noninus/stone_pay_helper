@@ -25,6 +25,7 @@ import stone.utils.Stone;
 import stone.application.enums.Action;
 import stone.application.interfaces.StoneActionCallback;
 import br.com.stone.posandroid.providers.PosPrintProvider;
+import stone.utils.DebugMode;
 
 /** StonePayHelperPlugin */
 class StonePayHelperPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
@@ -69,9 +70,18 @@ class StonePayHelperPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
         Log.e(TAG, "Error sending deeplink printer: ${e.message}")
         result.error("DEEPLINK_ERROR", "Failed to send deeplink: ${e.message}", null)
       }
+    } else if (call.method == "enableDebugMode") {
+      DebugMode.debugMode = call.argument<Boolean>("enable") ?: true
+      Log.d(TAG, "Stone Debug Mode: ${DebugMode.debugMode}")
+      result.success(true)
     } else if (call.method == "initStone") {
       StoneStart.init(context)
       //Stone.appName = "StoneDemo"
+
+      // Habilitar logs completos da SDK Stone
+      DebugMode.debugMode = true
+      Log.d(TAG, "Stone Debug Mode enabled")
+
       result.success(true)
     } else if (call.method == "printBase64") {
       val posPrintProvider = PosPrintProvider(context)
