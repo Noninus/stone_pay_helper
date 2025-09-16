@@ -185,7 +185,7 @@ class StonePayHelperPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
         uriBuilder.authority("print")
         uriBuilder.scheme("printer-app")
 
-        uriBuilder.appendQueryParameter("SHOW_FEEDBACK_SCREEN", "true")
+        uriBuilder.appendQueryParameter("SHOW_FEEDBACK_SCREEN", "false")
 
         if (returnScheme != null) {
             uriBuilder.appendQueryParameter("SCHEME_RETURN", returnScheme)
