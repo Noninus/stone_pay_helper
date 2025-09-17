@@ -19,6 +19,10 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.common.PluginRegistry.Registrar
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 import stone.application.StoneStart;
 import stone.utils.Stone;
@@ -35,6 +39,7 @@ class StonePayHelperPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
   private lateinit var channel : MethodChannel
   private lateinit var activity:Activity
   private lateinit var context: Context
+  private var printerDeeplinkResult: Result? = null
 
   override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
     channel = MethodChannel(flutterPluginBinding.binaryMessenger, "stone_pay_helper")
@@ -60,13 +65,31 @@ class StonePayHelperPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
       result.success(true)
     } else if (call.method == "sendDeepLinkPrinter") {
       try {
+        // Store the result to be used when the deeplink response arrives
+        printerDeeplinkResult = result
         sendDeepLinkPrinter(
             call.argument<String>("printingData"),
-            call.argument<String>("returnScheme")
+            call.argument<String>("returnScheme"),
+            call.argument<Boolean>("showFeedbackScreen")
         )
-        result.success(true)
+
+        // Add a timeout handler - if no response after timeout, return TIMEOUT error
+        // The printer should always return a response
+        val timeout = 30000L // 30 seconds timeout
+        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+            if (printerDeeplinkResult != null) {
+                Log.e(TAG, "Printer deeplink timeout - no response received")
+                printerDeeplinkResult?.error("TIMEOUT", "No response from printer app", null)
+                printerDeeplinkResult = null
+            }
+        }, timeout)
+
+        // IMPORTANT: Don't call result.success() here since we're waiting for the callback
+        // The result will be sent when handleDeepLinkResponse is called
+
       } catch (e: Exception) {
         Log.e(TAG, "Error sending deeplink printer: ${e.message}")
+        printerDeeplinkResult = null
         result.error("DEEPLINK_ERROR", "Failed to send deeplink: ${e.message}", null)
       }
     } else if (call.method == "enableDebugMode") {
@@ -175,17 +198,21 @@ class StonePayHelperPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
 
     private fun sendDeepLinkPrinter(
         printingData: String?,
-        returnScheme: String?
+        returnScheme: String?,
+        showFeedbackScreen: Boolean?
     ) {
         Log.d(TAG, "sendDeepLinkPrinter - Starting")
         Log.d(TAG, "sendDeepLinkPrinter - printingData length: ${printingData?.length}")
         Log.d(TAG, "sendDeepLinkPrinter - returnScheme: $returnScheme")
+        Log.d(TAG, "sendDeepLinkPrinter - showFeedbackScreen: $showFeedbackScreen")
 
         val uriBuilder = Uri.Builder()
         uriBuilder.authority("print")
         uriBuilder.scheme("printer-app")
 
-        uriBuilder.appendQueryParameter("SHOW_FEEDBACK_SCREEN", "false")
+        // Use the showFeedbackScreen parameter to control the feedback screen
+        val feedbackValue = if (showFeedbackScreen == true) "true" else "false"
+        uriBuilder.appendQueryParameter("SHOW_FEEDBACK_SCREEN", feedbackValue)
 
         if (returnScheme != null) {
             uriBuilder.appendQueryParameter("SCHEME_RETURN", returnScheme)
@@ -226,12 +253,54 @@ class StonePayHelperPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
        Log.v(TAG, "handleDeepLinkResponse")
         try {
             if (intent?.data != null) {
-                //Toast.makeText(activity, intent.data.toString(), Toast.LENGTH_LONG).show()
-                channel.invokeMethod("checkoutCallback", intent.data.toString())
-                Log.v(TAG, intent.data.toString())
+                val data = intent.data.toString()
+                Log.v(TAG, "DeepLink Response: $data")
+
+                // Parse the URI to extract parameters
+                val uri = Uri.parse(data)
+
+                // Check multiple possible parameter names for printer result
+                // Different Stone printer apps may use different parameter names
+                val printResult = uri.getQueryParameter("print_result")
+                    ?: uri.getQueryParameter("PRINT_RESULT")
+                    ?: uri.getQueryParameter("result")
+                    ?: uri.getQueryParameter("RESULT")
+                    ?: uri.getQueryParameter("status")
+                    ?: uri.getQueryParameter("STATUS")
+
+                // Check if this is a printer response
+                if (printResult != null || data.contains("printer-app") || data.contains("print")) {
+                    // This is a printer response
+                    Log.d(TAG, "Printer DeepLink Response - Result: ${printResult ?: "UNKNOWN"}")
+
+                    // If we have a pending printer result, return it
+                    if (printerDeeplinkResult != null) {
+                        // If we couldn't extract a specific result, but it's clearly a printer response, return SUCCESS
+                        val finalResult = printResult ?: if (data.contains("success", ignoreCase = true)) "SUCCESS" else "UNKNOWN_RESULT"
+                        printerDeeplinkResult?.success(finalResult)
+                        printerDeeplinkResult = null
+                    } else {
+                        Log.w(TAG, "Received printer response but no pending result handler")
+                    }
+                } else if (data.contains("pay-response")) {
+                    // Regular checkout callback
+                    channel.invokeMethod("checkoutCallback", data)
+                } else {
+                    Log.w(TAG, "Received unknown deeplink response: $data")
+                    // If we have a pending printer result and received any response, assume it's from printer
+                    if (printerDeeplinkResult != null) {
+                        Log.d(TAG, "Assuming this is a printer response since we're waiting for one")
+                        printerDeeplinkResult?.success("RESPONSE_RECEIVED")
+                        printerDeeplinkResult = null
+                    }
+                }
             }
         } catch (e: Exception) {
-            //Toast.makeText(activity, e.toString(), Toast.LENGTH_LONG).show()
+            Log.e(TAG, "Error handling deeplink response: ${e.message}")
+            if (printerDeeplinkResult != null) {
+                printerDeeplinkResult?.error("RESPONSE_ERROR", "Error handling deeplink response: ${e.message}", null)
+                printerDeeplinkResult = null
+            }
             Log.v(TAG, e.toString())
         }
     }
@@ -261,10 +330,29 @@ class StonePayHelperPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
   override fun onAttachedToActivity(binding: ActivityPluginBinding) {
     this.activity = binding.activity
     binding.addOnNewIntentListener(fun(intent: Intent?): Boolean {
-      intent?.let { handleDeepLinkResponse(it) }
+      Log.d(TAG, "onNewIntent received")
+      intent?.let {
+        Log.d(TAG, "Intent data: ${it.data}")
+        Log.d(TAG, "Intent action: ${it.action}")
+        Log.d(TAG, "Intent scheme: ${it.scheme}")
+        handleDeepLinkResponse(it)
+      }
       return false;
     })
-    handleDeepLinkResponse(binding.activity.intent)
+
+    // Check if there's already an intent when attaching (app was opened via deeplink)
+    if (binding.activity.intent?.data != null) {
+      Log.d(TAG, "Initial intent data: ${binding.activity.intent.data}")
+      Log.d(TAG, "Initial intent action: ${binding.activity.intent.action}")
+      Log.d(TAG, "Initial intent scheme: ${binding.activity.intent.scheme}")
+
+      // Check if this is a response from printer (activity was recreated after printer app)
+      val data = binding.activity.intent.data.toString()
+      if (data.contains("flutterdeeplinkdemo") || data.contains("print") || data.contains("printer")) {
+        Log.d(TAG, "Detected printer response on activity attach")
+        handleDeepLinkResponse(binding.activity.intent)
+      }
+    }
   }
   override fun onDetachedFromActivityForConfigChanges() {}
 

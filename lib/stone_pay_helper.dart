@@ -76,19 +76,23 @@ class StonePayHelper {
     return ec;
   }
 
-  /// Sends deeplink printer request with stylized content
-  static Future<bool> sendDeepLinkPrinter({
+  /// Sends deeplink printer request with stylized content and returns the print result
+  /// Returns: Print status like "SUCCESS", "PRINTER_OUT_OF_PAPER", etc.
+  static Future<String> sendDeepLinkPrinter({
     required String printingData,
     String? returnScheme,
+    bool showFeedbackScreen = false,
   }) async {
     try {
-      await _channel.invokeMethod('sendDeepLinkPrinter', {
+      final String result = await _channel.invokeMethod('sendDeepLinkPrinter', {
         'printingData': printingData,
         'returnScheme': returnScheme,
+        'showFeedbackScreen': showFeedbackScreen,
       });
-      return true;
+      return result;
     } catch (e) {
-      return false;
+      return "ERROR: $e";
     }
   }
+
 }

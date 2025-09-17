@@ -80,11 +80,147 @@ class _PrinterTestScreenState extends State<PrinterTestScreen> {
     if (!mounted) return;
   }
 
+  Future<void> printDeepLink({bool showFeedback = false}) async {
+    setState(() {
+      successPrint = true; // Reset status
+    });
+
+    try {
+      // Exemplo de conteúdo JSON para impressão
+      String printingData = """
+[
+  {
+    "type": "text",
+    "content": "TESTE DEEPLINK IMPRESSORA",
+    "align": "center",
+    "size": "big"
+  },
+  {
+    "type": "text",
+    "content": "Data: ${DateTime.now().toString().substring(0, 19)}",
+    "align": "right",
+    "size": "medium"
+  },
+  {
+    "type": "text",
+    "content": "Feedback Screen: $showFeedback",
+    "align": "left",
+    "size": "small"
+  },
+  {
+    "type": "line",
+    "content": "========================"
+  },
+  {
+    "type": "text",
+    "content": "ITENS DO PEDIDO",
+    "align": "center",
+    "size": "medium"
+  },
+  {
+    "type": "text",
+    "content": "1x Produto Teste - R\$ 10,00",
+    "align": "left",
+    "size": "small"
+  },
+  {
+    "type": "text",
+    "content": "2x Outro Produto - R\$ 25,00",
+    "align": "left",
+    "size": "small"
+  },
+  {
+    "type": "line",
+    "content": "========================"
+  },
+  {
+    "type": "text",
+    "content": "TOTAL: R\$ 60,00",
+    "align": "right",
+    "size": "big"
+  },
+  {
+    "type": "text",
+    "content": "Obrigado pela compra!",
+    "align": "center",
+    "size": "medium"
+  }
+]
+      """;
+
+      print("Iniciando impressão via DeepLink...");
+      final String result = await StonePayHelper.sendDeepLinkPrinter(
+        printingData: printingData,
+        returnScheme: "flutterdeeplinkdemo",
+        showFeedbackScreen: showFeedback,
+      );
+
+      print("Resultado da impressão: $result");
+
+      // Verifica o resultado e atualiza o estado
+      if (result == "SUCCESS") {
+        setState(() {
+          successPrint = true;
+        });
+        globalScaffoldKey.currentState?.showSnackBar(
+          SnackBar(
+            content: Text("Impressão concluída com sucesso!"),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        setState(() {
+          successPrint = false;
+        });
+
+        // Mensagens específicas para cada tipo de erro
+        String errorMessage = "Erro na impressão: ";
+        switch (result) {
+          case "PRINTER_OUT_OF_PAPER":
+            errorMessage += "Sem papel na impressora";
+            break;
+          case "PRINTER_INIT_ERROR":
+            errorMessage += "Erro ao inicializar impressora";
+            break;
+          case "LOW_ENERGY":
+            errorMessage += "Bateria baixa";
+            break;
+          case "PRINTER_BUSY":
+            errorMessage += "Impressora ocupada";
+            break;
+          case "PRINTER_COVER_OPEN":
+            errorMessage += "Tampa da impressora aberta";
+            break;
+          default:
+            errorMessage += result;
+        }
+
+        globalScaffoldKey.currentState?.showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      print('Erro ao enviar deeplink: $e');
+      setState(() {
+        successPrint = false;
+      });
+      globalScaffoldKey.currentState?.showSnackBar(
+        SnackBar(
+          content: Text("Erro ao enviar comando de impressão: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      scaffoldMessengerKey: globalScaffoldKey,
       home: Scaffold(
-        key: globalScaffoldKey,
         appBar: AppBar(
           title: const Text('Plugin example app'),
         ),
@@ -119,9 +255,34 @@ class _PrinterTestScreenState extends State<PrinterTestScreen> {
             SizedBox(
               height: 10,
             ),
+            Divider(thickness: 2),
+            Text(
+              "TESTE DEEPLINK IMPRESSORA",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            SizedBox(
+              height: 10,
+            ),
+            ElevatedButton(
+                onPressed: () {
+                  printDeepLink(showFeedback: false);
+                },
+                child: Text("Print DeepLink SEM Feedback")),
+            SizedBox(
+              height: 10,
+            ),
+            ElevatedButton(
+                onPressed: () {
+                  printDeepLink(showFeedback: true);
+                },
+                child: Text("Print DeepLink COM Feedback")),
+            SizedBox(
+              height: 20,
+            ),
             successPrint
-                ? Icon(Icons.check_circle_outline, color: Colors.green)
-                : Icon(Icons.error, color: Colors.red)
+                ? Icon(Icons.check_circle_outline,
+                    color: Colors.green, size: 50)
+                : Icon(Icons.error, color: Colors.red, size: 50)
           ],
         ),
       ),
