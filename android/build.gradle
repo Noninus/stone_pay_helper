@@ -25,7 +25,7 @@ android {
     compileSdkVersion 34   // pode deixar 34; se seu app já está em 35, também funciona
 
     defaultConfig {
-        minSdkVersion 24   // Stone 4.11.x exige 24+
+        minSdkVersion 22   // Stone 4.11.x exige 24+
         consumerProguardFiles 'consumer-rules.pro'
     }
 
