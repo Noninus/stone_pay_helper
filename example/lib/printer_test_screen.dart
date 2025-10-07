@@ -102,44 +102,50 @@ class _PrinterTestScreenState extends State<PrinterTestScreen> {
       String dataHora =
           "${agora.day.toString().padLeft(2, '0')}/${agora.month.toString().padLeft(2, '0')}/${agora.year.toString().substring(2)} Abert: ${agora.hour.toString().padLeft(2, '0')}:${agora.minute.toString().padLeft(2, '0')} Fech:${agora.hour.toString().padLeft(2, '0')}:${agora.minute.toString().padLeft(2, '0')}";
 
-      // Monta o cabeçalho da tabela
-      String cabecalhoTabela = "Q de       Descrição       Vl Unit  Sub-To";
+      // Monta a tabela completa em um único bloco
+      StringBuffer tabelaCompleta = StringBuffer();
+
+      // Cabeçalho da tabela (otimizado para não estourar)
+      tabelaCompleta.writeln("Qtd | Descrição         | Vl.Unit | Total");
+
+      // Adiciona cada item
+      for (var item in itens) {
+        int qtd = item['quantidade'];
+        String descricao = item['descricao'].toString();
+
+        // Trunca descrição garantindo que caiba (máx 17 chars)
+        if (descricao.length > 17) {
+          descricao = descricao.substring(0, 14) + "...";
+        }
+
+        double vlUnit = item['valorUnitario'];
+        double subTotal = item['subTotal'];
+
+        // Formata valores com vírgula
+        String vlUnitStr = vlUnit.toStringAsFixed(2).replaceAll('.', ',');
+        String subTotalStr = subTotal.toStringAsFixed(2).replaceAll('.', ',');
+
+        String linha =
+            "${qtd.toString().padLeft(3)} | ${descricao.padRight(17)} | ${vlUnitStr.padLeft(7)} | ${subTotalStr.padLeft(5)}";
+        tabelaCompleta.writeln(linha);
+      }
 
       List<Map<String, dynamic>> printData = [
         {
           "type": "text",
           "content":
-              "Conferência de Conta\n================================================\nAGUARDE A EMISSÃO DA NOTA FISCAL\n================================================",
+              "Conferência de Conta\n==================================\nAGUARDE A EMISSÃO DA NOTA FISCAL\n==================================",
           "align": "center",
-          "size": "small"
+          "size": "medium"
         },
         {
           "type": "text",
-          "content": "Data: $dataHora\n\nMesa: $mesa\n\n$cabecalhoTabela",
+          "content":
+              "Data: $dataHora\nMesa: $mesa\n\n${tabelaCompleta.toString().trim()}",
           "align": "left",
           "size": "small"
         },
       ];
-
-      // Adiciona itens com formatação melhorada
-      for (var item in itens) {
-        int qtd = item['quantidade'];
-        String descricao = item['descricao'].toString();
-        double vlUnit = item['valorUnitario'];
-        double subTotal = item['subTotal'];
-
-        // Formata para ficar alinhado como na imagem
-        // Formato: "1 Sprite Lata                5,00    5,0"
-        String linha =
-            "${qtd.toString().padRight(2)} ${descricao.padRight(23)} ${vlUnit.toStringAsFixed(2).replaceAll('.', ',').padLeft(5)} ${subTotal.toStringAsFixed(2).replaceAll('.', ',')}";
-
-        printData.add({
-          "type": "text",
-          "content": linha,
-          "align": "left",
-          "size": "small"
-        });
-      }
 
       // Adiciona linhas pontilhadas e totais (agrupados para reduzir padding)
       printData.addAll([
