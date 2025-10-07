@@ -80,6 +80,243 @@ class _PrinterTestScreenState extends State<PrinterTestScreen> {
     if (!mounted) return;
   }
 
+  Future<void> printPreContaStone({
+    required String mesa,
+    required List<Map<String, dynamic>> itens,
+    required double valorTotal,
+    required int numeroPessoas,
+    String nomeEstabelecimento = "Squalus",
+    String telefone = "(43) 99996-2360 3338-8099",
+    bool showFeedback = false,
+  }) async {
+    setState(() {
+      successPrint = true;
+    });
+
+    try {
+      // Calcula valor por pessoa
+      double valorPorPessoa = valorTotal / numeroPessoas;
+
+      // Formata data e hora
+      DateTime agora = DateTime.now();
+      String dataHora =
+          "${agora.day.toString().padLeft(2, '0')}/${agora.month.toString().padLeft(2, '0')}/${agora.year.toString().substring(2)} Abert: ${agora.hour.toString().padLeft(2, '0')}:${agora.minute.toString().padLeft(2, '0')} Fech:${agora.hour.toString().padLeft(2, '0')}:${agora.minute.toString().padLeft(2, '0')}";
+
+      List<Map<String, dynamic>> printData = [
+        {
+          "type": "text",
+          "content": "Conferência de Conta",
+          "align": "center",
+          "size": "medium"
+        },
+        {
+          "type": "line",
+          "content": "================================================"
+        },
+        {
+          "type": "text",
+          "content": "AGUARDE A EMISSÃO DA NOTA FISCAL",
+          "align": "center",
+          "size": "small"
+        },
+        {
+          "type": "line",
+          "content": "================================================"
+        },
+        {
+          "type": "text",
+          "content": "Data: $dataHora",
+          "align": "left",
+          "size": "small"
+        },
+        {
+          "type": "text",
+          "content": "Mesa: $mesa",
+          "align": "left",
+          "size": "medium"
+        },
+        {
+          "type": "text",
+          "content":
+              "${'Qtde'.padRight(2)} ${'Descrição'.padRight(23)} ${'Vl. Unit'.padLeft(5)} ${'Sub-Total'}",
+          "align": "left",
+          "size": "small"
+        },
+      ];
+
+      // Adiciona itens com formatação melhorada
+      for (var item in itens) {
+        int qtd = item['quantidade'];
+        String descricao = item['descricao'].toString();
+        double vlUnit = item['valorUnitario'];
+        double subTotal = item['subTotal'];
+
+        // Formata para ficar alinhado como na imagem
+        // Formato: "1 Sprite Lata                5,00    5,0"
+        String linha =
+            "${qtd.toString().padRight(2)} ${descricao.padRight(23)} ${vlUnit.toStringAsFixed(2).replaceAll('.', ',').padLeft(5)} ${subTotal.toStringAsFixed(2).replaceAll('.', ',')}";
+
+        printData.add({
+          "type": "text",
+          "content": linha,
+          "align": "left",
+          "size": "small"
+        });
+      }
+
+      // Adiciona linhas pontilhadas e totais
+      printData.addAll([
+        {
+          "type": "line",
+          "content": "------------------------------------------------"
+        },
+        {
+          "type": "text",
+          "content":
+              "Valor a Pagar: ${valorTotal.toStringAsFixed(2).replaceAll('.', ',')}",
+          "align": "center",
+          "size": "medium"
+        },
+        {
+          "type": "line",
+          "content": "------------------------------------------------"
+        },
+        {
+          "type": "text",
+          "content":
+              "Valor por Pessoa: ($numeroPessoas pessoa${numeroPessoas > 1 ? 's' : ''})",
+          "align": "right",
+          "size": "small"
+        },
+        {
+          "type": "text",
+          "content":
+              "${valorPorPessoa.toStringAsFixed(2).replaceAll('.', ',')}",
+          "align": "right",
+          "size": "small"
+        },
+        {
+          "type": "line",
+          "content": "------------------------------------------------"
+        },
+        {
+          "type": "text",
+          "content": nomeEstabelecimento,
+          "align": "center",
+          "size": "small"
+        },
+        {
+          "type": "text",
+          "content": "Fone $telefone",
+          "align": "center",
+          "size": "small"
+        },
+        {
+          "type": "line",
+          "content": "================================================"
+        },
+        {
+          "type": "text",
+          "content": "AGUARDE A EMISSÃO DA NOTA FISCAL",
+          "align": "center",
+          "size": "small"
+        },
+        {
+          "type": "text",
+          "content": "Sem Valor Fiscal / Peça Nota Fiscal",
+          "align": "center",
+          "size": "small"
+        },
+      ]);
+
+      String printingData = printData
+          .map((e) => e
+              .toString()
+              .replaceAll('{', '{"')
+              .replaceAll(':', '":')
+              .replaceAll(', ', ', "'))
+          .join(',\n');
+
+      // Converte para JSON válido
+      printingData = "[${printData.map((item) {
+        String type = item['type'];
+        String content = item['content'].toString().replaceAll('"', '\\"');
+        String align = item['align'] ?? '';
+        String size = item['size'] ?? '';
+
+        if (type == 'line') {
+          return '{"type": "line", "content": "$content"}';
+        } else {
+          return '{"type": "$type", "content": "$content", "align": "$align", "size": "$size"}';
+        }
+      }).join(',\n')}]";
+
+      print("Iniciando impressão de pré-conta via DeepLink...");
+      final String result = await StonePayHelper.sendDeepLinkPrinter(
+        printingData: printingData,
+        returnScheme: "flutterdeeplinkdemo",
+        showFeedbackScreen: showFeedback,
+      );
+
+      print("Resultado da impressão: $result");
+
+      if (result == "SUCCESS") {
+        setState(() {
+          successPrint = true;
+        });
+        globalScaffoldKey.currentState?.showSnackBar(
+          SnackBar(
+            content: Text("Pré-conta impressa com sucesso!"),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        setState(() {
+          successPrint = false;
+        });
+
+        String errorMessage = "Erro na impressão: ";
+        switch (result) {
+          case "PRINTER_OUT_OF_PAPER":
+            errorMessage += "Sem papel na impressora";
+            break;
+          case "PRINTER_INIT_ERROR":
+            errorMessage += "Erro ao inicializar impressora";
+            break;
+          case "LOW_ENERGY":
+            errorMessage += "Bateria baixa";
+            break;
+          case "PRINTER_BUSY":
+            errorMessage += "Impressora ocupada";
+            break;
+          case "PRINTER_COVER_OPEN":
+            errorMessage += "Tampa da impressora aberta";
+            break;
+          default:
+            errorMessage += result;
+        }
+
+        globalScaffoldKey.currentState?.showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      print('Erro ao imprimir pré-conta: $e');
+      setState(() {
+        successPrint = false;
+      });
+      globalScaffoldKey.currentState?.showSnackBar(
+        SnackBar(
+          content: Text("Erro ao imprimir pré-conta: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   Future<void> printDeepLink({bool showFeedback = false}) async {
     setState(() {
       successPrint = true; // Reset status
@@ -276,6 +513,38 @@ class _PrinterTestScreenState extends State<PrinterTestScreen> {
                   printDeepLink(showFeedback: true);
                 },
                 child: Text("Print DeepLink COM Feedback")),
+            SizedBox(
+              height: 10,
+            ),
+            Divider(thickness: 2),
+            Text(
+              "PRÉ-CONTA STONE",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            SizedBox(
+              height: 10,
+            ),
+            ElevatedButton(
+                onPressed: () {
+                  // Exemplo de uso com dados de teste
+                  printPreContaStone(
+                    mesa: "33",
+                    itens: [
+                      {
+                        'quantidade': 1,
+                        'descricao': 'Sprite Lata',
+                        'valorUnitario': 5.00,
+                        'subTotal': 5.00,
+                      },
+                    ],
+                    valorTotal: 5.00,
+                    numeroPessoas: 2,
+                    nomeEstabelecimento: "Squalus",
+                    telefone: "(43) 99996-2360 3338-8099",
+                    showFeedback: false,
+                  );
+                },
+                child: Text("Imprimir Pré-Conta (Exemplo)")),
             SizedBox(
               height: 20,
             ),
