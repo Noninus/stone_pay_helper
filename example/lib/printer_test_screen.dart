@@ -100,22 +100,22 @@ class _PrinterTestScreenState extends State<PrinterTestScreen> {
       // Formata data e hora
       DateTime agora = DateTime.now();
       String dataHora =
-          "${agora.day.toString().padLeft(2, '0')}/${agora.month.toString().padLeft(2, '0')}/${agora.year.toString().substring(2)} Abert: ${agora.hour.toString().padLeft(2, '0')}:${agora.minute.toString().padLeft(2, '0')} Fech:${agora.hour.toString().padLeft(2, '0')}:${agora.minute.toString().padLeft(2, '0')}";
+          "${agora.day.toString().padLeft(2, '0')}/${agora.month.toString().padLeft(2, '0')}/${agora.year.toString().substring(2)}\nAbert: ${agora.hour.toString().padLeft(2, '0')}:${agora.minute.toString().padLeft(2, '0')} Fech:${agora.hour.toString().padLeft(2, '0')}:${agora.minute.toString().padLeft(2, '0')}";
 
-      // Monta a tabela completa em um único bloco
+      // Monta a tabela completa em um único bloco (otimizada para medium - ~32 chars)
       StringBuffer tabelaCompleta = StringBuffer();
 
-      // Cabeçalho da tabela (otimizado para não estourar)
-      tabelaCompleta.writeln("Qtd | Descrição         | Vl.Unit | Total");
+      // Cabeçalho da tabela (balanceado para valores grandes)
+      tabelaCompleta.writeln("Q | Descrição   | Vl.U  | Total");
 
       // Adiciona cada item
       for (var item in itens) {
         int qtd = item['quantidade'];
         String descricao = item['descricao'].toString();
 
-        // Trunca descrição garantindo que caiba (máx 17 chars)
-        if (descricao.length > 17) {
-          descricao = descricao.substring(0, 14) + "...";
+        // Trunca descrição para dar espaço aos valores (máx 11 chars)
+        if (descricao.length > 11) {
+          descricao = descricao.substring(0, 8) + "...";
         }
 
         double vlUnit = item['valorUnitario'];
@@ -125,8 +125,12 @@ class _PrinterTestScreenState extends State<PrinterTestScreen> {
         String vlUnitStr = vlUnit.toStringAsFixed(2).replaceAll('.', ',');
         String subTotalStr = subTotal.toStringAsFixed(2).replaceAll('.', ',');
 
+        // Limita tamanho dos valores para não estourar (máx 7 chars: "9999,99")
+        if (vlUnitStr.length > 7) vlUnitStr = vlUnitStr.substring(0, 7);
+        if (subTotalStr.length > 7) subTotalStr = subTotalStr.substring(0, 7);
+
         String linha =
-            "${qtd.toString().padLeft(3)} | ${descricao.padRight(17)} | ${vlUnitStr.padLeft(7)} | ${subTotalStr.padLeft(5)}";
+            "${qtd.toString().padLeft(1)} | ${descricao.padRight(11)} | ${vlUnitStr.padLeft(5)} | ${subTotalStr.padLeft(5)}";
         tabelaCompleta.writeln(linha);
       }
 
@@ -134,7 +138,7 @@ class _PrinterTestScreenState extends State<PrinterTestScreen> {
         {
           "type": "text",
           "content":
-              "Conferência de Conta\n==================================\nAGUARDE A EMISSÃO DA NOTA FISCAL\n==================================",
+              "Conferência de Conta\n========================\nAGUARDE A EMISSÃO DA NOTA FISCAL\n========================",
           "align": "center",
           "size": "medium"
         },
@@ -143,7 +147,7 @@ class _PrinterTestScreenState extends State<PrinterTestScreen> {
           "content":
               "Data: $dataHora\nMesa: $mesa\n\n${tabelaCompleta.toString().trim()}",
           "align": "left",
-          "size": "small"
+          "size": "medium"
         },
       ];
 
@@ -152,9 +156,9 @@ class _PrinterTestScreenState extends State<PrinterTestScreen> {
         {
           "type": "text",
           "content":
-              "------------------------------------------------\nValor a Pagar: ${valorTotal.toStringAsFixed(2).replaceAll('.', ',')}\nValor por Pessoa: ($numeroPessoas pessoa${numeroPessoas > 1 ? 's' : ''})\n${valorPorPessoa.toStringAsFixed(2).replaceAll('.', ',')}\n------------------------------------------------\n$nomeEstabelecimento\nFone $telefone\n================================================\nAGUARDE A EMISSÃO DA NOTA FISCAL\nSem Valor Fiscal / Peça Nota Fiscal",
+              "------------------------\nValor a Pagar: ${valorTotal.toStringAsFixed(2).replaceAll('.', ',')}\nValor por Pessoa: ($numeroPessoas pessoa${numeroPessoas > 1 ? 's' : ''})\n${valorPorPessoa.toStringAsFixed(2).replaceAll('.', ',')}\n------------------------\n$nomeEstabelecimento\nFone $telefone\n========================\nAGUARDE A EMISSÃO DA NOTA FISCAL\n\nSem Valor Fiscal/Peça Nota Fiscal",
           "align": "center",
-          "size": "small"
+          "size": "medium"
         },
       ]);
 
@@ -464,6 +468,12 @@ class _PrinterTestScreenState extends State<PrinterTestScreen> {
                         'descricao': 'Sprite Lata',
                         'valorUnitario': 5.00,
                         'subTotal': 5.00,
+                      },
+                      {
+                        'quantidade': 3,
+                        'descricao': 'Coca-Cola Zero 350ml Lata',
+                        'valorUnitario': 115.00,
+                        'subTotal': 145.00,
                       },
                     ],
                     valorTotal: 5.00,
