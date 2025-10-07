@@ -161,14 +161,14 @@ class _PrinterTestScreenState extends State<PrinterTestScreen> {
         {
           "type": "text",
           "content":
-              "Conferência de Conta\n========================\nAGUARDE A EMISSÃO DA NOTA FISCAL\n========================",
+              "Conferência de Conta\n=================================\nAGUARDE A EMISSÃO DA NOTA FISCAL\n=================================",
           "align": "center",
           "size": "medium"
         },
         {
           "type": "text",
           "content":
-              "Data: $dataHora\nMesa: $mesa\n\n${tabelaCompleta.toString().trim()}",
+              "Mesa: $mesa Data: $dataHora\n\n${tabelaCompleta.toString().trim()}",
           "align": "left",
           "size": "medium"
         },
@@ -179,7 +179,14 @@ class _PrinterTestScreenState extends State<PrinterTestScreen> {
         {
           "type": "text",
           "content":
-              "------------------------\nValor a Pagar: ${valorTotal.toStringAsFixed(2).replaceAll('.', ',')}\nValor por Pessoa: ($numeroPessoas pessoa${numeroPessoas > 1 ? 's' : ''})\n${valorPorPessoa.toStringAsFixed(2).replaceAll('.', ',')}\n------------------------\n$nomeEstabelecimento\nFone $telefone\n========================\nAGUARDE A EMISSÃO DA NOTA FISCAL\n\nSem Valor Fiscal/Peça Nota Fiscal",
+              "Valor a Pagar: ${valorTotal.toStringAsFixed(2).replaceAll('.', ',')}",
+          "align": "center",
+          "size": "big"
+        },
+        {
+          "type": "text",
+          "content":
+              "Valor por Pessoa: ($numeroPessoas pessoa${numeroPessoas > 1 ? 's' : ''})\n${valorPorPessoa.toStringAsFixed(2).replaceAll('.', ',')}\n---------------------------------\n$nomeEstabelecimento\nFone $telefone\n=================================\nSem Valor Fiscal/Peça Nota Fiscal",
           "align": "center",
           "size": "medium"
         },
