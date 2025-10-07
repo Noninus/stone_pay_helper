@@ -155,13 +155,13 @@ class _PrinterTestScreenState extends State<PrinterTestScreen> {
           String linha2 = "    | ${linha2Desc} |       |      ";
           tabelaCompleta.writeln(linha2);
         }
+        tabelaCompleta.writeln("----+------------+-------+------");
       }
 
       List<Map<String, dynamic>> printData = [
         {
           "type": "text",
-          "content":
-              "Conferência de Conta\n=================================\nAGUARDE A EMISSÃO DA NOTA FISCAL\n=================================",
+          "content": "Conferência de Conta\n=================================",
           "align": "center",
           "size": "medium"
         },
@@ -179,14 +179,14 @@ class _PrinterTestScreenState extends State<PrinterTestScreen> {
         {
           "type": "text",
           "content":
-              "Valor a Pagar: ${valorTotal.toStringAsFixed(2).replaceAll('.', ',')}",
+              "Valor a Pagar:\n${valorTotal.toStringAsFixed(2).replaceAll('.', ',')}",
           "align": "center",
           "size": "big"
         },
         {
           "type": "text",
           "content":
-              "Valor por Pessoa: ($numeroPessoas pessoa${numeroPessoas > 1 ? 's' : ''})\n${valorPorPessoa.toStringAsFixed(2).replaceAll('.', ',')}\n---------------------------------\n$nomeEstabelecimento\nFone $telefone\n=================================\nSem Valor Fiscal/Peça Nota Fiscal",
+              "Valor por Pessoa: ($numeroPessoas pessoa${numeroPessoas > 1 ? 's' : ''})\n${valorPorPessoa.toStringAsFixed(2).replaceAll('.', ',')}\n---------------------------------\n$nomeEstabelecimento\nFone $telefone\n=================================\n(Sem Valor Fiscal)",
           "align": "center",
           "size": "medium"
         },
