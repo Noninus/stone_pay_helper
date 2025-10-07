@@ -102,43 +102,20 @@ class _PrinterTestScreenState extends State<PrinterTestScreen> {
       String dataHora =
           "${agora.day.toString().padLeft(2, '0')}/${agora.month.toString().padLeft(2, '0')}/${agora.year.toString().substring(2)} Abert: ${agora.hour.toString().padLeft(2, '0')}:${agora.minute.toString().padLeft(2, '0')} Fech:${agora.hour.toString().padLeft(2, '0')}:${agora.minute.toString().padLeft(2, '0')}";
 
+      // Monta o cabeçalho da tabela
+      String cabecalhoTabela = "Q de       Descrição       Vl Unit  Sub-To";
+
       List<Map<String, dynamic>> printData = [
         {
           "type": "text",
-          "content": "Conferência de Conta",
-          "align": "center",
-          "size": "medium"
-        },
-        {
-          "type": "line",
-          "content": "================================================"
-        },
-        {
-          "type": "text",
-          "content": "AGUARDE A EMISSÃO DA NOTA FISCAL",
-          "align": "center",
-          "size": "small"
-        },
-        {
-          "type": "line",
-          "content": "================================================"
-        },
-        {
-          "type": "text",
-          "content": "Data: $dataHora",
-          "align": "left",
-          "size": "small"
-        },
-        {
-          "type": "text",
-          "content": "Mesa: $mesa",
-          "align": "left",
-          "size": "medium"
-        },
-        {
-          "type": "text",
           "content":
-              "${'Qtde'.padRight(2)} ${'Descrição'.padRight(23)} ${'Vl. Unit'.padLeft(5)} ${'Sub-Total'}",
+              "Conferência de Conta\n================================================\nAGUARDE A EMISSÃO DA NOTA FISCAL\n================================================",
+          "align": "center",
+          "size": "small"
+        },
+        {
+          "type": "text",
+          "content": "Data: $dataHora\n\nMesa: $mesa\n\n$cabecalhoTabela",
           "align": "left",
           "size": "small"
         },
@@ -164,66 +141,12 @@ class _PrinterTestScreenState extends State<PrinterTestScreen> {
         });
       }
 
-      // Adiciona linhas pontilhadas e totais
+      // Adiciona linhas pontilhadas e totais (agrupados para reduzir padding)
       printData.addAll([
         {
-          "type": "line",
-          "content": "------------------------------------------------"
-        },
-        {
           "type": "text",
           "content":
-              "Valor a Pagar: ${valorTotal.toStringAsFixed(2).replaceAll('.', ',')}",
-          "align": "center",
-          "size": "medium"
-        },
-        {
-          "type": "line",
-          "content": "------------------------------------------------"
-        },
-        {
-          "type": "text",
-          "content":
-              "Valor por Pessoa: ($numeroPessoas pessoa${numeroPessoas > 1 ? 's' : ''})",
-          "align": "right",
-          "size": "small"
-        },
-        {
-          "type": "text",
-          "content":
-              "${valorPorPessoa.toStringAsFixed(2).replaceAll('.', ',')}",
-          "align": "right",
-          "size": "small"
-        },
-        {
-          "type": "line",
-          "content": "------------------------------------------------"
-        },
-        {
-          "type": "text",
-          "content": nomeEstabelecimento,
-          "align": "center",
-          "size": "small"
-        },
-        {
-          "type": "text",
-          "content": "Fone $telefone",
-          "align": "center",
-          "size": "small"
-        },
-        {
-          "type": "line",
-          "content": "================================================"
-        },
-        {
-          "type": "text",
-          "content": "AGUARDE A EMISSÃO DA NOTA FISCAL",
-          "align": "center",
-          "size": "small"
-        },
-        {
-          "type": "text",
-          "content": "Sem Valor Fiscal / Peça Nota Fiscal",
+              "------------------------------------------------\nValor a Pagar: ${valorTotal.toStringAsFixed(2).replaceAll('.', ',')}\nValor por Pessoa: ($numeroPessoas pessoa${numeroPessoas > 1 ? 's' : ''})\n${valorPorPessoa.toStringAsFixed(2).replaceAll('.', ',')}\n------------------------------------------------\n$nomeEstabelecimento\nFone $telefone\n================================================\nAGUARDE A EMISSÃO DA NOTA FISCAL\nSem Valor Fiscal / Peça Nota Fiscal",
           "align": "center",
           "size": "small"
         },
