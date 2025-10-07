@@ -105,19 +105,14 @@ class _PrinterTestScreenState extends State<PrinterTestScreen> {
       // Monta a tabela completa em um único bloco (otimizada para medium - ~32 chars)
       StringBuffer tabelaCompleta = StringBuffer();
 
-      // Cabeçalho da tabela (balanceado para valores grandes)
-      tabelaCompleta.writeln("Q | Descrição   | Vl.U  | Total");
+      // Cabeçalho da tabela (ajustado para medium ~32 chars)
+      tabelaCompleta.writeln("Qtd | Descrição  | Vl.U  | Tot");
+      tabelaCompleta.writeln("----+------------+-------+------");
 
-      // Adiciona cada item
+      // Adiciona cada item (com 2 linhas para descrição)
       for (var item in itens) {
         int qtd = item['quantidade'];
         String descricao = item['descricao'].toString();
-
-        // Trunca descrição para dar espaço aos valores (máx 11 chars)
-        if (descricao.length > 11) {
-          descricao = descricao.substring(0, 8) + "...";
-        }
-
         double vlUnit = item['valorUnitario'];
         double subTotal = item['subTotal'];
 
@@ -129,9 +124,37 @@ class _PrinterTestScreenState extends State<PrinterTestScreen> {
         if (vlUnitStr.length > 7) vlUnitStr = vlUnitStr.substring(0, 7);
         if (subTotalStr.length > 7) subTotalStr = subTotalStr.substring(0, 7);
 
-        String linha =
-            "${qtd.toString().padLeft(1)} | ${descricao.padRight(11)} | ${vlUnitStr.padLeft(5)} | ${subTotalStr.padLeft(5)}";
-        tabelaCompleta.writeln(linha);
+        // Quebra descrição em 2 linhas (máx 12 chars por linha para caber)
+        String linha1Desc = "";
+        String linha2Desc = "";
+
+        if (descricao.length <= 10) {
+          linha1Desc = descricao.padRight(10);
+        } else {
+          // Tenta quebrar em palavra inteira
+          int breakPoint = 10;
+          int lastSpace = descricao.substring(0, 10).lastIndexOf(' ');
+          if (lastSpace > 5) breakPoint = lastSpace;
+
+          linha1Desc = descricao.substring(0, breakPoint).padRight(10);
+          String resto = descricao.substring(breakPoint).trim();
+          if (resto.length > 10) {
+            linha2Desc = (resto.substring(0, 7) + "...").padRight(10);
+          } else {
+            linha2Desc = resto.padRight(10);
+          }
+        }
+
+        // Primeira linha com quantidade, descrição, valores (valores com mais espaço)
+        String linha1 =
+            "${qtd.toString().padLeft(3)} | ${linha1Desc} | ${vlUnitStr.padLeft(5)} | ${subTotalStr.padLeft(4)}";
+        tabelaCompleta.writeln(linha1);
+
+        // Segunda linha só com continuação da descrição (se houver)
+        if (linha2Desc.trim().isNotEmpty) {
+          String linha2 = "    | ${linha2Desc} |       |      ";
+          tabelaCompleta.writeln(linha2);
+        }
       }
 
       List<Map<String, dynamic>> printData = [
