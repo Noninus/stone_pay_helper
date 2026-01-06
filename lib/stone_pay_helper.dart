@@ -11,8 +11,25 @@ class StonePayHelper {
   static late PaymentService _paymentService;
   static late PrinterService _printerService;
 
-  static init() async {
-    await _channel.invokeMethod('initStone'); // Método inicial initStone.
+  // Chaves de Sandbox
+  static const String _sandboxAuthorization = "a4506b6d-d36c-4d7b-8223-e6ae13849de0";
+  static const String _sandboxProviderId = "fe9a0d63-cb11-4a79-9d00-0593da4f81bc";
+
+  // Chaves de Produção
+  static const String _releaseAuthorization = "5a56d4c0-226b-4265-bc86-8f84d9626fdf";
+  static const String _releaseProviderId = "2300b29b-fe56-4169-ac8a-8595765f189a";
+
+  /// Inicializa o SDK da Stone.
+  ///
+  /// [release] - Se true (padrão), usa as chaves de produção. Se false, usa as chaves de sandbox.
+  static init({bool release = true}) async {
+    final qrcodeAuthorization = release ? _releaseAuthorization : _sandboxAuthorization;
+    final qrcodeProviderId = release ? _releaseProviderId : _sandboxProviderId;
+
+    await _channel.invokeMethod('initStone', {
+      'qrcodeAuthorization': qrcodeAuthorization,
+      'qrcodeProviderId': qrcodeProviderId,
+    });
     _paymentService = PaymentService(_channel);
     _printerService = PrinterService(_channel);
   }
@@ -94,5 +111,4 @@ class StonePayHelper {
       return "ERROR: $e";
     }
   }
-
 }

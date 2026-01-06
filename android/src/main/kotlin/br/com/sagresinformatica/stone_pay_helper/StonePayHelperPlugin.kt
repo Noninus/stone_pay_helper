@@ -25,6 +25,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 import stone.application.StoneStart;
+import stone.application.enums.StoneKeyType;
 import stone.utils.Stone;
 import stone.application.enums.Action;
 import stone.application.interfaces.StoneActionCallback;
@@ -97,9 +98,25 @@ class StonePayHelperPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
       Log.d(TAG, "Stone Debug logging enabled: $enable")
       result.success(true)
     } else if (call.method == "initStone") {
-      StoneStart.init(context)
-      //Stone.appName = "StoneDemo"
-      Log.d(TAG, "Stone initialized")
+      val qrcodeAuthorization = call.argument<String>("qrcodeAuthorization")
+      val qrcodeProviderId = call.argument<String>("qrcodeProviderId")
+
+      if (qrcodeAuthorization != null || qrcodeProviderId != null) {
+        val stoneKeys = HashMap<StoneKeyType, String>()
+
+        if (qrcodeAuthorization != null) {
+          stoneKeys[StoneKeyType.QRCODE_AUTHORIZATION] = qrcodeAuthorization
+        }
+        if (qrcodeProviderId != null) {
+          stoneKeys[StoneKeyType.QRCODE_PROVIDERID] = qrcodeProviderId
+        }
+
+        StoneStart.init(context, stoneKeys)
+        Log.d(TAG, "Stone initialized with keys")
+      } else {
+        StoneStart.init(context)
+        Log.d(TAG, "Stone initialized without keys")
+      }
 
       result.success(true)
     } else if (call.method == "printBase64") {
