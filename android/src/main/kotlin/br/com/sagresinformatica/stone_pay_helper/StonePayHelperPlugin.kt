@@ -25,8 +25,8 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 import stone.application.StoneStart;
-import stone.application.enums.StoneKeyType;
 import stone.utils.Stone;
+import stone.utils.keys.StoneKeyType;
 import stone.application.enums.Action;
 import stone.application.interfaces.StoneActionCallback;
 import br.com.stone.posandroid.providers.PosPrintProvider;
