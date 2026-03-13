@@ -135,6 +135,46 @@ class StonePayHelperPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
       posPrintProvider.execute()
 
       result.success(true)
+    } else if (call.method == "printFromJsonSdk") {
+      try {
+        val printingData = call.argument<String>("printingData").orEmpty()
+        val posPrintProvider = PosPrintProvider(context)
+        val jsonArray = JSONArray(printingData)
+
+        for (i in 0 until jsonArray.length()) {
+          val item = jsonArray.getJSONObject(i)
+          val type = item.optString("type", "")
+          val content = item.optString("content", "")
+
+          when (type) {
+            "text", "line" -> posPrintProvider.addLine(content)
+            "image" -> {
+              val imagePath = item.optString("imagePath", "")
+              if (imagePath.isNotEmpty()) {
+                try {
+                  val file = java.io.File(imagePath)
+                  if (file.exists()) {
+                    val bytes = file.readBytes()
+                    val base64Str = android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP)
+                    posPrintProvider.addBase64Image(base64Str)
+                  } else {
+                    Log.w(TAG, "printFromJsonSdk - Image not found: $imagePath")
+                  }
+                } catch (e: Exception) {
+                  Log.e(TAG, "printFromJsonSdk - Image error: ${e.message}")
+                }
+              }
+            }
+          }
+        }
+
+        addCallBack(posPrintProvider)
+        posPrintProvider.execute()
+        result.success("SUCCESS")
+      } catch (e: Exception) {
+        Log.e(TAG, "printFromJsonSdk error: ${e.message}")
+        result.error("PRINT_SDK_ERROR", e.message, null)
+      }
     } else if (call.method == "isStone") {
       val isStone = Stone.getPosAndroidDevice().getPosAndroidManufacturer()
       if (isStone == null) {

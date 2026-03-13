@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
-
 import 'package:flutter/services.dart';
 import 'package:stone_pay_helper/payment_service/payment_request.dart';
 import 'package:stone_pay_helper/payment_service/payment_response.dart';
@@ -121,26 +119,12 @@ class StonePayHelper {
     }
   }
 
-  /// Parseia o JSON de impressão e imprime item por item via SDK,
-  /// reutilizando o printText/printBase64 que já funciona.
+  /// Envia o JSON de impressão pro Kotlin que usa um único PosPrintProvider
+  /// pra todos os itens, evitando espaçamento extra entre cada linha.
   static Future<String> _printFromJsonSdk(String printingData) async {
-    final List<dynamic> items = jsonDecode(printingData);
-    for (final item in items) {
-      final type = item['type'] ?? '';
-      final content = item['content'] ?? '';
-      switch (type) {
-        case 'text':
-        case 'line':
-          _printerService.printText(content);
-          break;
-        case 'image':
-          final imagePath = item['imagePath'] ?? '';
-          if (imagePath.isNotEmpty) {
-            _printerService.printBase64(imagePath);
-          }
-          break;
-      }
-    }
-    return "SUCCESS";
+    final String result = await _channel.invokeMethod('printFromJsonSdk', {
+      'printingData': printingData,
+    });
+    return result;
   }
 }
