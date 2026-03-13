@@ -65,4 +65,34 @@ class StonePayHelper {
     }
     return ec;
   }
+
+  /// Sends deeplink printer request with stylized content and returns the print result
+  /// Returns: Print status like "SUCCESS", "PRINTER_OUT_OF_PAPER", etc.
+  ///
+  /// [useSDK] - If true, bypasses deeplink and prints directly via Stone SDK.
+  /// Useful as a workaround when the deeplink printer is broken.
+  /// Note: SDK mode loses align/size styling but prints reliably.
+  static Future<String> sendDeepLinkPrinter({
+    required String printingData,
+    String? returnScheme,
+    bool showFeedbackScreen = false,
+    bool useSDK = false,
+  }) async {
+    try {
+      if (useSDK) {
+        final String result = await _channel.invokeMethod('printFromJson', {
+          'printingData': printingData,
+        });
+        return result;
+      }
+      final String result = await _channel.invokeMethod('sendDeepLinkPrinter', {
+        'printingData': printingData,
+        'returnScheme': returnScheme,
+        'showFeedbackScreen': showFeedbackScreen,
+      });
+      return result;
+    } catch (e) {
+      return "ERROR: $e";
+    }
+  }
 }
