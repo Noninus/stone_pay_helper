@@ -90,8 +90,7 @@ class StonePayHelperPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
           val content = item.optString("content", "")
 
           when (type) {
-            "text" -> posPrintProvider.addLine(content)
-            "line" -> posPrintProvider.addLine(content)
+            "text", "line" -> posPrintProvider.addLine(content)
             "image" -> {
               val imagePath = item.optString("imagePath", "")
               if (imagePath.isNotEmpty()) {
@@ -102,12 +101,10 @@ class StonePayHelperPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
                     val base64Str = android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP)
                     posPrintProvider.addBase64Image(base64Str)
                   } else {
-                    Log.w(TAG, "printFromJson - Image file not found: $imagePath")
-                    posPrintProvider.addLine("[image: $imagePath]")
+                    Log.w(TAG, "printFromJson - Image not found: $imagePath")
                   }
                 } catch (e: Exception) {
-                  Log.e(TAG, "printFromJson - Error loading image: ${e.message}")
-                  posPrintProvider.addLine("[image error]")
+                  Log.e(TAG, "printFromJson - Image error: ${e.message}")
                 }
               }
             }
@@ -119,7 +116,7 @@ class StonePayHelperPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
         result.success("SUCCESS")
       } catch (e: Exception) {
         Log.e(TAG, "printFromJson error: ${e.message}")
-        result.error("PRINT_SDK_ERROR", "Failed to print via SDK: ${e.message}", null)
+        result.error("PRINT_SDK_ERROR", e.message, null)
       }
     } else if (call.method == "sendDeepLinkPrinter") {
       try {
