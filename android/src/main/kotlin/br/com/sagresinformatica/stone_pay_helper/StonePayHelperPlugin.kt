@@ -30,6 +30,8 @@ import stone.utils.keys.StoneKeyType;
 import stone.application.enums.Action;
 import stone.application.interfaces.StoneActionCallback;
 import br.com.stone.posandroid.providers.PosPrintProvider;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /** StonePayHelperPlugin */
 class StonePayHelperPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
@@ -133,6 +135,49 @@ class StonePayHelperPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
       posPrintProvider.execute()
 
       result.success(true)
+    } else if (call.method == "printFromJson") {
+      try {
+        val printingData = call.argument<String>("printingData").orEmpty()
+        val posPrintProvider = PosPrintProvider(context)
+        val jsonArray = JSONArray(printingData)
+
+        for (i in 0 until jsonArray.length()) {
+          val item = jsonArray.getJSONObject(i)
+          val type = item.optString("type", "")
+          val content = item.optString("content", "")
+
+          when (type) {
+            "text" -> posPrintProvider.addLine(content)
+            "line" -> posPrintProvider.addLine(content)
+            "image" -> {
+              val imagePath = item.optString("imagePath", "")
+              if (imagePath.isNotEmpty()) {
+                try {
+                  val file = java.io.File(imagePath)
+                  if (file.exists()) {
+                    val bytes = file.readBytes()
+                    val base64Str = android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP)
+                    posPrintProvider.addBase64Image(base64Str)
+                  } else {
+                    Log.w(TAG, "printFromJson - Image file not found: $imagePath")
+                    posPrintProvider.addLine("[image: $imagePath]")
+                  }
+                } catch (e: Exception) {
+                  Log.e(TAG, "printFromJson - Error loading image: ${e.message}")
+                  posPrintProvider.addLine("[image error]")
+                }
+              }
+            }
+          }
+        }
+
+        addCallBack(posPrintProvider)
+        posPrintProvider.execute()
+        result.success("SUCCESS")
+      } catch (e: Exception) {
+        Log.e(TAG, "printFromJson error: ${e.message}")
+        result.error("PRINT_SDK_ERROR", "Failed to print via SDK: ${e.message}", null)
+      }
     } else if (call.method == "isStone") {
       val isStone = Stone.getPosAndroidDevice().getPosAndroidManufacturer()
       if (isStone == null) {
